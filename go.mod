@@ -1,3 +1,5 @@
-module github.com/shettyh/threadpool
+module github.com/ygcc/workerpool
 
 go 1.14
+
+require github.com/stretchr/testify v1.7.0

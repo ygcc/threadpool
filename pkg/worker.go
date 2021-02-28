@@ -1,24 +1,20 @@
-package threadpool
+package pkg
 
-// Worker type holds the job channel and passed worker threadpool
+// Worker holds executes tasks in jobQueue
 type Worker struct {
 	jobChannel  chan interface{}
-	workerPool  chan chan interface{}
 	closeHandle chan bool
 }
 
 // NewWorker creates the new worker
-func NewWorker(workerPool chan chan interface{}, closeHandle chan bool) *Worker {
-	return &Worker{workerPool: workerPool, jobChannel: make(chan interface{}), closeHandle: closeHandle}
+func NewWorker(jobChannel chan interface{}, closeHandle chan bool) *Worker {
+	return &Worker{jobChannel: jobChannel, closeHandle: closeHandle}
 }
 
 // Start starts the worker by listening to the job channel
 func (w Worker) Start() {
 	go func() {
 		for {
-			// Put the worker to the worker threadpool
-			w.workerPool <- w.jobChannel
-
 			select {
 			// Wait for the job
 			case job := <-w.jobChannel:
@@ -36,10 +32,10 @@ func (w Worker) Start() {
 func (w Worker) executeJob(job interface{}) {
 	// Execute the job based on the task type
 	switch task := job.(type) {
-	case Runnable:
-		task.Run()
+	case RunnableTask:
+		task.Task.Run()
 		break
-	case callableTask:
+	case CallableTask:
 		response := task.Task.Call()
 		task.Handle.done = true
 		task.Handle.response <- response
